@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PetSpeak AI - Dog Emotion Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+        body { font-family: 'Poppins', sans-serif; background-image: url('https://thumbs.dreamstime.com/b/group-dogs-different-breed-sitting-outdoor-generative-ai-animals-having-walk-together-298956378.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; background-color: rgba(238, 242, 249, 0.7); background-blend-mode: overlay; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+
+        .dog-image { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem; display: block; margin-left: auto; margin-right: auto; }
+        h1 { color: #3498db; font-size: 10rem; font-weight: bold; margin-bottom: 0.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        p { color: #555; margin-bottom: 2rem; }
+        .controls button { background-color: #3498db; color: white; border: none; padding: 12px 24px; margin: 5px; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+        .controls button:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4); }
+        .controls button:disabled { background-color: #bdc3c7; cursor: not-allowed; box-shadow: none; transform: none; }
+        #recordBtn.recording { background-color: #e74c3c; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4); }
+        audio { margin-top: 1.5rem; width: 100%; display: none; } /* Hide initially */
+        .result-container { margin-top: 2rem; padding: 1.5rem; border: 2px dashed #3498db; border-radius: 10px; min-height: 100px; }
+        #status { font-style: italic; color: #7f8c8d; margin-bottom: 1rem;}
+        #predictionMessage { font-size: 1.2rem; font-weight: 600; color: #2980b9; }
+        #confidence { font-size: 0.9rem; color: #34495e; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+
+<div class="bg-white p-8 rounded-2xl shadow-2xl text-center max-w-lg w-full transform transition-all duration-300 hover:scale-105">
+    <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" alt="Dog" class="dog-image">
+    <h1 class="text-3xl font-semibold text-gray-800 mb-2">🐾 PetSpeak AI</h1>
+    <p>What is your dog trying to tell you? Record their sound to find out!</p>
+
+    <div class="controls flex justify-center space-x-4">
+        <button id="recordBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-full transition duration-300 ease-in-out transform hover:scale-105">Record</button>
+        <button id="stopBtn" disabled class="bg-gray-400 text-white font-bold py-3 px-6 rounded-full cursor-not-allowed">Stop</button>
+    </div>
+
+    <audio id="audioPlayer" controls></audio>
+
+    <div class="result-container">
+        <div id="status">Ready to listen...</div>
+        <div id="predictionMessage"></div>
+        <div id="confidence"></div>
+    </div>
+</div>
+
+<script>
+    const recordBtn = document.getElementById('recordBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const audioPlayer = document.getElementById('audioPlayer');
+    const statusDiv = document.getElementById('status');
+    const predictionMessageDiv = document.getElementById('predictionMessage');
+    const confidenceDiv = document.getElementById('confidence');
+
+    let mediaRecorder;
+    let audioChunks = [];
+
+    // Request microphone access
+    navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.addEventListener("dataavailable", event => {
+                audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener("stop", () => {
+                const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+
+                const audioUrl = URL.createObjectURL(audioBlob);
+                audioPlayer.src = audioUrl;
+                audioPlayer.style.display = 'block'; // Show the player
+
+                sendForPrediction(audioBlob);
+                audioChunks = []; // Reset for next recording
+            });
+
+        }).catch(err => {
+            console.error("Error accessing microphone:", err);
+            statusDiv.textContent = "Error: Microphone access denied.";
+            recordBtn.disabled = true;
+        });
+
+    recordBtn.addEventListener('click', () => {
+        mediaRecorder.start();
+        recordBtn.disabled = true;
+        stopBtn.disabled = false;
+        recordBtn.classList.add('recording');
+        recordBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+        recordBtn.classList.add('bg-red-500', 'hover:bg-red-600');
+        statusDiv.textContent = "Listening...";
+        predictionMessageDiv.textContent = "";
+        confidenceDiv.textContent = "";
+    });
+
+    stopBtn.addEventListener('click', () => {
+        mediaRecorder.stop();
+        recordBtn.disabled = false;
+        stopBtn.disabled = true;
+        recordBtn.classList.remove('recording', 'bg-red-500', 'hover:bg-red-600');
+        recordBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        statusDiv.textContent = "Processing audio...";
+    });
+
+    async function sendForPrediction(audioBlob) {
+        const formData = new FormData();
+        formData.append("audio", audioBlob, "user_recording.webm");
+
+        try {
+            // Note: The URL points to the '/predict' endpoint on your server.
+            const response = await fetch('/predict', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error(`Server responded with status: ${response.status}`);
+
+            const result = await response.json();
+
+            if (result.error) {
+                statusDiv.textContent = "Prediction Error";
+                predictionMessageDiv.textContent = result.error;
+            } else {
+                statusDiv.textContent = "Analysis Complete!";
+                predictionMessageDiv.textContent = result.message; // Display the user-friendly message
+                confidenceDiv.textContent = `(Confidence: ${result.confidence})`;
+            }
+
+        } catch (error) {
+            console.error("Error during prediction:", error);
+            statusDiv.textContent = "An error occurred.";
+            predictionMessageDiv.textContent = "Could not get a prediction from the server.";
+        }
+    }
+</script>
+
+</body>
+</html>

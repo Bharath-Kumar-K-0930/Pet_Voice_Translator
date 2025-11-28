@@ -1,0 +1,13 @@
+{
+  "name": "pet-voice-translator-monorepo",
+  "version": "1.0.0",
+  "description": "A monorepo for the Pet Voice Translator academic project.",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run start --prefix server\" \"npm run dev --prefix client\" \"cd Pet_Voice_Translator-web-CAT-only && pip install -r requirements.txt && python app.py\" \"cd Pet_Voice_Translator-web-DOG-only && pip install -r requirements.txt && python app.py\"",
+    "install-all": "npm install && npm install --prefix client && npm install --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
