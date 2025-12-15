@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext';
 import Navbar from './components/layout/Navbar';
 import Footer from './components/layout/Footer';
+import ProtectedRoute from './components/layout/ProtectedRoute';
 import LandingPage from './pages/LandingPage';
 import TranslatorPage from './pages/TranslatorPage';
 import Pet_Voice_Translator_web_DOG_only from './pages/Pet_Voice_Translator-web-DOG-only';
@@ -22,18 +23,67 @@ function AppContent() {
       {!hideNavbar && <Navbar />}
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/translate" element={<TranslatorPage />} />
-        <Route path="/translate/dog" element={<Pet_Voice_Translator_web_DOG_only />} />
-        <Route path="/translate/cat" element={<Pet_Voice_Translator_web_CAT_only />} />
+        <Route
+          path="/translate"
+          element={
+            <ProtectedRoute>
+              <TranslatorPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/translate/dog"
+          element={
+            <ProtectedRoute>
+              <Pet_Voice_Translator_web_DOG_only />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/translate/cat"
+          element={
+            <ProtectedRoute>
+              <Pet_Voice_Translator_web_CAT_only />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/shop" element={<PetShopPage />} />
-        <Route path="/petshop" element={<PetShopPage />} />
-        <Route path="/petshop-demo" element={<PetCareStoreDemo />} />
-        <Route path="/order/:id" element={<OrderDetailsPage />} />
+        <Route
+          path="/shop"
+          element={
+            <ProtectedRoute>
+              <PetShopPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/petshop"
+          element={
+            <ProtectedRoute>
+              <PetShopPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/petshop-demo"
+          element={
+            <ProtectedRoute>
+              <PetCareStoreDemo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/order/:id"
+          element={
+            <ProtectedRoute>
+              <OrderDetailsPage />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <Footer />
-    </div>
+    </div >
   );
 }
 

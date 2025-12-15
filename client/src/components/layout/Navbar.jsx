@@ -17,8 +17,12 @@ const Navbar = () => {
           <span className="text-xl font-bold">PetSpeak AI</span>
         </Link>
         <div className="hidden md:flex items-center gap-6 text-lg justify-center flex-1">
-          <NavLink to="/translate" className={`${navLinkClass} px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-300 border border-slate-600 hover:border-cyan-400`}>Translator</NavLink>
-          {user && <NavLink to="/shop" className={`${navLinkClass} px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-300 border border-slate-600 hover:border-cyan-400`}>Shop</NavLink>}
+          {user && (
+            <>
+              <NavLink to="/translate" className={`${navLinkClass} px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-300 border border-slate-600 hover:border-cyan-400`}>Translator</NavLink>
+              <NavLink to="/shop" className={`${navLinkClass} px-4 py-2 rounded-lg bg-slate-800/50 hover:bg-slate-700/50 transition-all duration-300 border border-slate-600 hover:border-cyan-400`}>Shop</NavLink>
+            </>
+          )}
         </div>
         <div className="flex items-center gap-4">
           {user ? (
