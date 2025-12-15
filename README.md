@@ -205,7 +205,7 @@ This is an academic project. For contributions:
 
 ## License
 
-This project is for academic purposes. Please refer to individual component licenses for usage rights.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
